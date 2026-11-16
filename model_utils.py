@@ -9,11 +9,9 @@ from typing import Any
 import joblib
 import numpy as np
 import pandas as pd
-import sklearn
 from sklearn.exceptions import InconsistentVersionWarning
 
 URL_PATTERN = re.compile(r"https?://\S+|www\.\S+", flags=re.IGNORECASE)
-MODEL_SKLEARN_VERSION = "1.6.1"  # Version recorded by final evaluation v9.
 
 
 def clean_for_model(text: Any) -> str:
@@ -38,11 +36,13 @@ def load_model_bundle(path: str | Path) -> dict:
             original_versions.append(str(item.message))
 
     if original_versions:
-        raise RuntimeError(
-            "Versi scikit-learn tidak cocok dengan model. "
-            f"Model dibuat dengan scikit-learn {MODEL_SKLEARN_VERSION}; "
-            f"lingkungan sekarang menggunakan {sklearn.__version__}. "
-            "Install dependensi dari requirements.txt, lalu jalankan ulang aplikasi."
+        warnings.warn(
+            "Versi scikit-learn model berbeda dari lingkungan aktif. "
+            + "; ".join(original_versions)
+            + " Pemuatan tetap dilanjutkan, tetapi kompatibilitas dan hasil prediksi "
+            "tidak dijamin.",
+            RuntimeWarning,
+            stacklevel=2,
         )
 
     required = {
