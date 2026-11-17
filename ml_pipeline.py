@@ -522,6 +522,13 @@ def train_and_evaluate_dataset(
         "ga_prediction": ga_predictions,
     })
     selected_names = final_vectorizer.get_feature_names_out()[selected_indices]
+    selected_features_frame = pd.DataFrame({
+        "feature_index": selected_indices.astype(int),
+        "feature": selected_names.astype(str),
+    })
+    selected_features_frame["ngram_type"] = selected_features_frame["feature"].map(
+        lambda value: "Bigram" if " " in value else "Unigram"
+    )
 
     model_bundle = {
         "vectorizer": final_vectorizer,
@@ -548,7 +555,7 @@ def train_and_evaluate_dataset(
         "reports": reports,
         "confusion_matrices": matrices,
         "predictions": predictions_frame,
-        "selected_features": pd.DataFrame({"feature": selected_names}),
+        "selected_features": selected_features_frame,
         "model_bundle": model_bundle,
         "feature_count": feature_count,
         "selected_count": selected_count,

@@ -2,9 +2,16 @@ EMOREVIEW — QUICK START
 
 1. Extract the ZIP package.
 2. Open a terminal in the extracted emoreview_streamlit folder.
-3. Create a Python 3.12 virtual environment.
+3. Create a Python 3.13 virtual environment.
 4. Install dependencies: pip install -r requirements.txt
 5. Run: streamlit run app.py
 6. Open the local URL printed by Streamlit (normally http://localhost:8501).
 
-The bundled model was exported with scikit-learn 1.6.1. Keep the pinned version in requirements.txt.
+The built-in research model was exported with scikit-learn 1.6.1. requirements.txt
+uses unpinned package versions. A cross-version warning may appear when loading the
+model; successful loading does not guarantee full compatibility. For the most
+reproducible model behavior, use scikit-learn 1.6.1.
+
+After running GA, its result is available on the Evaluation and Classification pages
+in the same Streamlit session. The built-in v10 research model remains a separate
+selectable option. Download the .joblib file to archive a trained GA model bundle.

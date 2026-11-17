@@ -79,14 +79,19 @@ Menampilkan ringkasan model bawaan dari eksperimen PRDECT-ID: jumlah fitur, ting
 - GA menggunakan konfigurasi awal dari hasil confirmation: population 40, crossover 0.9, mutation 100/L, tournament k=3, elitism 1, maksimal 30 generasi, patience 5, `min_delta=0.001`, dan penalti ukuran 0.02.
 - Pengguna dapat mengubah beberapa parameter untuk eksperimen baru. Hasil eksperimen baru tidak menggantikan artefak model penelitian bawaan.
 - Setelah GA selesai, baseline dan GA-selected SVM dilatih ulang pada train + validation, lalu dievaluasi pada test yang ditahan.
-- Model hasil optimasi dapat diunduh sebagai `.joblib`.
+- Hasil run disimpan di `st.session_state`. Selama masih menggunakan sesi aplikasi Streamlit yang sama, hasil tersebut langsung tersedia di halaman Model Evaluation dan Emotion Classification.
+- Pada Model Evaluation dan Emotion Classification, pengguna memilih secara eksplisit antara model penelitian v10 dan hasil GA terbaru. Model penelitian v10 tetap tersedia sebagai pilihan terpisah.
+- Pada halaman GA Optimization, daftar fitur terpilih dapat dicari, ditelusuri per halaman, dan diunduh seluruhnya sebagai CSV.
+- Model hasil optimasi dapat diunduh sebagai `.joblib`; file ini berisi vectorizer, baseline model hasil run, GA-selected model, indeks/nama fitur terpilih, label kelas, dan konfigurasi run.
 
 ### 3. Model Evaluation
 
-Menampilkan metrik test model bawaan v10 atau model hasil optimasi terbaru dalam sesi aplikasi, termasuk confusion matrix dan classification report.
+Menyediakan pemilih sumber evaluasi: hasil penelitian bawaan PRDECT-ID v10 atau hasil run GA terbaru dari dataset yang diunggah. Masing-masing menampilkan metrik, confusion matrix, dan classification report miliknya sendiri. Hasil custom tidak menimpa hasil penelitian.
 
 ### 4. Emotion Classification
 
+- Pengguna memilih sumber model: model penelitian v10 atau bundle hasil GA terbaru pada sesi yang sama.
+- Di dalam setiap sumber model, pengguna dapat memilih Baseline atau GA-selected. Baseline pada bundle custom adalah baseline yang dilatih dari dataset yang diunggah, bukan baseline PRDECT-ID bawaan.
 - Single review: klasifikasi satu ulasan dan bandingkan prediksi baseline dengan GA.
 - Batch CSV: klasifikasi sekumpulan ulasan sekaligus, tampilkan distribusi prediksi, dan unduh hasil CSV.
 - Hasil batch menyimpan prediksi baseline dan GA secara terpisah. Kolom `Selected_Model_Prediction`, grafik, dan unduhan mengikuti pilihan model yang sedang aktif.
@@ -96,8 +101,10 @@ Menampilkan metrik test model bawaan v10 atau model hasil optimasi terbaru dalam
 
 - Hasil evaluasi bawaan menggunakan test split yang sama dengan evaluasi v9 sebelumnya. Hasil v10 adalah evaluasi lanjutan, bukan holdout independen yang sepenuhnya baru. Metadata menyatakan pemilihan konfigurasi dan fitur tidak menggunakan test set.
 
-- **GA tidak dijalankan setiap kali pengguna meminta prediksi.** GA berjalan hanya ketika pengguna membuka halaman optimasi dan menekan tombol Run Genetic Algorithm. Hasil model disimpan dan kemudian dapat digunakan berulang kali.
-- Mode klasifikasi menggunakan model tersimpan dari eksperimen v10 secara langsung.
+- **GA tidak dijalankan setiap kali pengguna meminta prediksi.** GA berjalan hanya ketika pengguna membuka halaman optimasi dan menekan tombol Run Genetic Algorithm. Hasil run disimpan pada sesi Streamlit saat ini dan dapat dipilih dari halaman evaluasi/klasifikasi.
+- Model penelitian v10 tetap disimpan pada folder `artifacts/` dan tidak ditimpa oleh hasil optimasi baru. Pemilihan model dilakukan melalui kontrol sumber model di halaman terkait.
+- `st.session_state` bersifat per sesi. Jika server dihentikan atau sesi browser berakhir, hasil GA terbaru tidak otomatis tersedia lagi. Simpan file `emoreview_ga_model.joblib` untuk mengarsipkan bundle hasil run. File unduhan model saat ini belum memiliki fitur impor otomatis ke sesi baru.
+- Mode klasifikasi bawaan menggunakan model tersimpan dari eksperimen v10 secara langsung.
 - Dalam mode optimasi, test set hanya digunakan setelah kromosom terbaik dipilih berdasarkan validation.
 - Vocabulary TF-IDF dikunci saat refit train + validation agar indeks kromosom tetap konsisten.
 - Metrik test model bawaan adalah hasil eksperimen PRDECT-ID sebelumnya, bukan jaminan performa untuk dataset lain.
