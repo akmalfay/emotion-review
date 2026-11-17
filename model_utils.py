@@ -13,7 +13,6 @@ import sklearn
 from sklearn.exceptions import InconsistentVersionWarning
 
 URL_PATTERN = re.compile(r"https?://\S+|www\.\S+", flags=re.IGNORECASE)
-MODEL_SKLEARN_VERSION = "1.6.1"  # Version recorded by final evaluation v9.
 
 
 def clean_for_model(text: Any) -> str:
@@ -35,14 +34,20 @@ def load_model_bundle(path: str | Path) -> dict:
     original_versions = []
     for item in captured:
         if isinstance(item.message, InconsistentVersionWarning):
-            original_versions.append(str(item.message))
+            original_versions.append(item.message.original_sklearn_version)
 
+    # Perbedaan versi dicatat sebagai peringatan, bukan alasan untuk menghentikan aplikasi.
+    # joblib/scikit-learn mungkin masih dapat memuat model, tetapi kompatibilitas lintas versi
+    # tidak dijamin. Jika deserialisasi gagal, joblib.load() tetap akan melempar exception.
+    compatibility_warning = None
     if original_versions:
-        raise RuntimeError(
-            "Versi scikit-learn tidak cocok dengan model. "
-            f"Model dibuat dengan scikit-learn {MODEL_SKLEARN_VERSION}; "
-            f"lingkungan sekarang menggunakan {sklearn.__version__}. "
-            "Install dependensi dari requirements.txt, lalu jalankan ulang aplikasi."
+        original = sorted({version for version in original_versions})
+        loaded_from = ", ".join(original)
+        compatibility_warning = (
+            f"Model disimpan dengan scikit-learn {loaded_from}, sedangkan lingkungan sekarang "
+            f"menggunakan scikit-learn {sklearn.__version__}. Model berhasil dimuat, tetapi "
+            "kompatibilitas lintas versi tidak dijamin. Periksa hasil prediksi; untuk reproduksi "
+            "yang paling konsisten, gunakan versi scikit-learn saat model dibuat."
         )
 
     required = {
@@ -52,6 +57,9 @@ def load_model_bundle(path: str | Path) -> dict:
     missing = required.difference(bundle)
     if missing:
         raise ValueError(f"Isi model bundle tidak lengkap: {sorted(missing)}")
+
+    if compatibility_warning:
+        bundle["_version_compatibility_warning"] = compatibility_warning
 
     return bundle
 
