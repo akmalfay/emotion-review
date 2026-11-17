@@ -16,18 +16,40 @@ st.caption("Klasifikasikan satu ulasan atau banyak ulasan secara otomatis menggu
 def load_default_bundle():
     return load_model_bundle(ARTIFACT_DIR / "final_models.joblib")
 
+try:
+    default_bundle = load_default_bundle()
+    if default_bundle.get("_version_compatibility_warning"):
+        st.warning(default_bundle["_version_compatibility_warning"])
+except Exception as exc:
+    st.error(f"Model bawaan tidak dapat dimuat: {exc}")
+    st.stop()
+
+# Model bawaan v10 selalu tersedia. Hasil GA terbaru hanya menjadi pilihan tambahan
+# dan tidak menimpa atau menghapus artefak model bawaan.
 if "latest_training_result" in st.session_state:
-    bundle = st.session_state["latest_training_result"]["model_bundle"]
-    st.success("Menggunakan model hasil optimasi terbaru pada sesi ini.")
+    model_source = st.radio(
+        "Sumber model",
+        ["Model penelitian (PRDECT-ID · final v10)", "Model hasil GA terbaru (dataset yang diunggah)"],
+        horizontal=True,
+        key="classification_model_source",
+    )
 else:
-    try:
-        bundle = load_default_bundle()
-        st.caption("Menggunakan model bawaan dari final evaluation v10.")
-        if bundle.get("_version_compatibility_warning"):
-            st.warning(bundle["_version_compatibility_warning"])
-    except Exception as exc:
-        st.error(f"Model tidak dapat dimuat: {exc}")
-        st.stop()
+    model_source = "Model penelitian (PRDECT-ID · final v10)"
+    st.caption("Menggunakan model bawaan dari final evaluation v10.")
+
+if model_source == "Model hasil GA terbaru (dataset yang diunggah)" and "latest_training_result" in st.session_state:
+    bundle = st.session_state["latest_training_result"]["model_bundle"]
+    st.success("Menggunakan bundle dari run GA terbaru. Baseline pada bundle ini juga dilatih ulang dari dataset yang diunggah.")
+    config = st.session_state.get("latest_training_config", {})
+    if config:
+        st.caption(
+            f"Konfigurasi run: population={config['population_size']}, "
+            f"crossover={config['crossover_probability']}, mutation={config['mutation_setting']}, "
+            f"seed={config['seed']}, λ={config['lambda_size']:.3f}."
+        )
+else:
+    bundle = default_bundle
+    st.success("Menggunakan bundle model penelitian PRDECT-ID final v10.")
 
 model_choice = st.radio(
     "Model klasifikasi",

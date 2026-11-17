@@ -1,5 +1,4 @@
 from pathlib import Path
-import json
 
 import pandas as pd
 import streamlit as st
@@ -11,32 +10,69 @@ ARTIFACT_DIR = BASE_DIR / "artifacts"
 
 st.set_page_config(page_title="Model Evaluation | EmoReview", page_icon="📊", layout="wide")
 st.title("📊 Model Evaluation")
-st.caption("Hasil final evaluation v10 pada PRDECT-ID.")
+st.caption("Bandingkan evaluasi model penelitian v10 dengan hasil optimasi GA dari dataset yang diunggah.")
 
-if "latest_training_result" in st.session_state:
+# Model penelitian selalu dimuat dari artefak tetap. Hasil GA terbaru merupakan
+# evaluasi terpisah dan hanya tersedia pada sesi Streamlit yang sama.
+default_metrics = pd.read_csv(ARTIFACT_DIR / "final_test_metrics.csv")
+default_reports = {
+    "Baseline Linear SVM": pd.read_csv(ARTIFACT_DIR / "baseline_classification_report.csv", index_col=0),
+    "GA-selected Linear SVM": pd.read_csv(ARTIFACT_DIR / "ga_classification_report.csv", index_col=0),
+}
+default_matrices = {
+    "Baseline Linear SVM": pd.read_csv(ARTIFACT_DIR / "baseline_confusion_matrix.csv", index_col=0),
+    "GA-selected Linear SVM": pd.read_csv(ARTIFACT_DIR / "ga_confusion_matrix.csv", index_col=0),
+}
+metadata = load_metadata(ARTIFACT_DIR / "final_evaluation_metadata.json")
+
+has_latest_run = "latest_training_result" in st.session_state
+if has_latest_run:
+    evaluation_source = st.radio(
+        "Sumber hasil evaluasi",
+        ["Model penelitian (PRDECT-ID · final v10)", "Hasil GA terbaru (dataset yang diunggah)"],
+        horizontal=True,
+        key="evaluation_source_choice",
+        help="Kedua hasil disimpan terpisah. Memilih hasil GA terbaru tidak mengganti artefak model penelitian.",
+    )
+else:
+    evaluation_source = "Model penelitian (PRDECT-ID · final v10)"
+    st.info("Belum ada hasil GA baru pada sesi ini. Menampilkan evaluasi bawaan penelitian v10.")
+
+if evaluation_source == "Hasil GA terbaru (dataset yang diunggah)" and has_latest_run:
     result = st.session_state["latest_training_result"]
-    st.info("Menampilkan evaluasi dari optimasi yang baru dijalankan pada sesi aplikasi ini.")
     metrics = result["comparison"].copy()
     reports = result["reports"]
     matrices = result["confusion_matrices"]
     selected_count = result["selected_count"]
     feature_count = result["feature_count"]
     reduction = result["reduction_pct"]
+    config = st.session_state.get("latest_training_config", {})
+    st.info(
+        "Ini adalah evaluasi dari dataset yang baru diunggah pada halaman GA Optimization. "
+        "Baseline dan GA pada bagian ini sama-sama dilatih ulang pada dataset tersebut; "
+        "hasilnya bukan pengganti evaluasi penelitian PRDECT-ID v10."
+    )
+    st.caption(
+        f"Dataset bersih: {result['audit'].summary['final_rows']:,} baris · "
+        f"Train/validation/test: {result['split_sizes']['train']:,} / "
+        f"{result['split_sizes']['validation']:,} / {result['split_sizes']['test']:,}"
+    )
+    if config:
+        st.caption(
+            "Konfigurasi run: "
+            f"population={config['population_size']}, "
+            f"crossover={config['crossover_probability']}, "
+            f"mutation={config['mutation_setting']}, seed={config['seed']}, "
+            f"λ={config['lambda_size']:.3f}."
+        )
 else:
-    metrics = pd.read_csv(ARTIFACT_DIR / "final_test_metrics.csv")
-    reports = {
-        "Baseline Linear SVM": pd.read_csv(ARTIFACT_DIR / "baseline_classification_report.csv", index_col=0),
-        "GA-selected Linear SVM": pd.read_csv(ARTIFACT_DIR / "ga_classification_report.csv", index_col=0),
-    }
-    matrices = {
-        "Baseline Linear SVM": pd.read_csv(ARTIFACT_DIR / "baseline_confusion_matrix.csv", index_col=0),
-        "GA-selected Linear SVM": pd.read_csv(ARTIFACT_DIR / "ga_confusion_matrix.csv", index_col=0),
-    }
+    metrics = default_metrics
+    reports = default_reports
+    matrices = default_matrices
     selected_count = int(metrics.loc[metrics["model"].str.contains("GA-selected", case=False), "selected_features"].iloc[0])
     feature_count = int(metrics.loc[metrics["model"].str.contains("Baseline", case=False), "selected_features"].iloc[0])
     reduction = 100 * (1 - selected_count / feature_count)
-    st.caption("Angka bawaan berasal dari final evaluation v10 pada PRDECT-ID.")
-    metadata = load_metadata(ARTIFACT_DIR / "final_evaluation_metadata.json")
+    st.caption("Angka bawaan berasal dari final evaluation v10 pada dataset PRDECT-ID.")
     if metadata.get("test_split_previously_evaluated", False):
         st.warning(
             "Test split yang sama telah diperiksa pada evaluasi v9. Karena itu, hasil ini merupakan "

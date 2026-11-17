@@ -187,8 +187,57 @@ if "latest_training_result" in st.session_state:
         st.line_chart(operator_chart, height=240)
 
     st.markdown("### Fitur terpilih")
-    st.write(f"Model baru memilih {result['selected_count']:,} dari {result['feature_count']:,} fitur kandidat.")
-    st.dataframe(result["selected_features"].head(30), use_container_width=True, hide_index=True)
+    selected_features = result["selected_features"].copy()
+    st.write(
+        f"Model baru memilih **{result['selected_count']:,} dari {result['feature_count']:,}** "
+        "fitur kandidat. Daftar di bawah merupakan seluruh fitur terpilih; tampilannya dipaginasi "
+        "agar lebih mudah ditelusuri."
+    )
+
+    search_query = st.text_input(
+        "Cari fitur (unigram atau bigram)",
+        placeholder="Contoh: bagus, kualitas, tidak sesuai...",
+        key="ga_selected_feature_search",
+    ).strip()
+    if search_query:
+        visible_features = selected_features[
+            selected_features["feature"].str.contains(search_query, case=False, regex=False, na=False)
+        ]
+    else:
+        visible_features = selected_features
+
+    page_controls = st.columns([1, 1, 2])
+    page_size = page_controls[0].selectbox(
+        "Baris per halaman", [25, 50, 100, 250], index=1, key="ga_selected_feature_page_size"
+    )
+    total_pages = max(1, (len(visible_features) + page_size - 1) // page_size)
+    page_key = "ga_selected_feature_page_number"
+    if st.session_state.get(page_key, 1) > total_pages:
+        st.session_state[page_key] = 1
+    page_number = page_controls[1].number_input(
+        "Halaman", min_value=1, max_value=total_pages, step=1, key=page_key
+    )
+    page_controls[2].markdown(
+        f"**{len(visible_features):,} fitur ditemukan** · halaman {page_number:,} dari {total_pages:,}"
+    )
+    start_row = (int(page_number) - 1) * page_size
+    end_row = min(start_row + page_size, len(visible_features))
+    st.dataframe(
+        visible_features.iloc[start_row:end_row],
+        use_container_width=True,
+        hide_index=True,
+    )
+    st.caption(
+        f"Menampilkan baris {start_row + 1 if len(visible_features) else 0:,}–{end_row:,} "
+        f"dari {len(visible_features):,} fitur yang cocok dengan pencarian."
+    )
+    st.download_button(
+        "⬇ Download seluruh fitur terpilih (CSV)",
+        data=selected_features.to_csv(index=False).encode("utf-8-sig"),
+        file_name="emoreview_ga_selected_features.csv",
+        mime="text/csv",
+        use_container_width=True,
+    )
 
     model_buffer = BytesIO()
     joblib.dump(result["model_bundle"], model_buffer, compress=3)
