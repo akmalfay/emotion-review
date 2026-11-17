@@ -25,6 +25,8 @@ emoreview_streamlit/
 │   ├── final_test_metrics.csv
 │   ├── baseline_confusion_matrix.csv
 │   ├── ga_confusion_matrix.csv
+│   ├── baseline_classification_report.csv
+│   ├── ga_classification_report.csv
 │   └── final_selected_features.csv
 ├── pages/
 │   ├── 1_GA_Optimization.py
@@ -87,6 +89,8 @@ Menampilkan metrik test model bawaan v9 atau model hasil optimasi terbaru dalam 
 
 - Single review: klasifikasi satu ulasan dan bandingkan prediksi baseline dengan GA.
 - Batch CSV: klasifikasi sekumpulan ulasan sekaligus, tampilkan distribusi prediksi, dan unduh hasil CSV.
+- Hasil batch menyimpan prediksi baseline dan GA secara terpisah. Kolom `Selected_Model_Prediction`, grafik, dan unduhan mengikuti pilihan model yang sedang aktif.
+- Mengganti file CSV atau kolom ulasan membatalkan hasil batch sebelumnya agar hasil dari input lama tidak tertukar dengan input baru.
 
 ## Catatan metodologis
 
