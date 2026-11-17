@@ -1,13 +1,11 @@
 {
   "selected_config_id": "P40_C90_M100L",
   "selected_seed_for_chromosome": 2,
-  "confirmation_candidates": 10,
-  "confirmation_seeds": [
+  "confirmation_seeds_used_for_configuration_selection": [
     1,
     2,
     3
   ],
-  "confirmation_runs": 30,
   "confirmation_mean_fitness": 0.6758281347608034,
   "confirmation_std_fitness": 0.0080610220139617,
   "confirmation_mean_validation_macro_f1": 0.6900230960970468,
@@ -22,11 +20,11 @@
   "total_candidate_features": 44443,
   "selected_features": 31924,
   "feature_reduction_pct": 28.168665481628153,
-  "tfidf_refit_seconds": 0.17061969799999588,
-  "baseline_svm_fit_seconds": 0.1208125299999665,
-  "baseline_test_prediction_seconds": 0.0007397879999757606,
-  "ga_svm_fit_seconds": 0.08842849699999533,
-  "ga_test_prediction_seconds": 0.0009176049999837232,
+  "tfidf_refit_seconds": 0.3862592040004529,
+  "baseline_svm_fit_seconds": 0.2490926539994689,
+  "baseline_test_prediction_seconds": 0.0030958480001572752,
+  "ga_svm_fit_seconds": 0.16140355100014858,
+  "ga_test_prediction_seconds": 0.0012168950006525847,
   "test_class_distribution": {
     "Anger": 99,
     "Fear": 134,
@@ -39,20 +37,12 @@
     2
   ],
   "tfidf_min_df_at_vocabulary_creation": 1,
-  "tfidf_vocabulary": "fixed to screening training-only vocabulary",
   "tfidf_final_fit_corpus": "training + validation",
+  "tfidf_vocabulary": "fixed to screening vocabulary",
   "svm_C": 1.0,
   "svm_max_iter": 5000,
   "svm_class_weight": null,
-  "svm_dual": "auto",
   "split_seed": 42,
-  "scikit_learn_version": "1.6.1",
-  "numpy_version": "2.4.6",
-  "pandas_version": "2.2.3",
-  "scipy_version": "1.16.3",
-  "test_split_previously_evaluated": true,
-  "test_split_disclosure": "Same test split was inspected in the earlier v9 evaluation. This run is a follow-on comparison, not an untouched independent holdout.",
-  "configuration_and_feature_selection_used_test": false,
   "test_metrics": [
     {
       "model": "Baseline Linear SVM",
@@ -63,9 +53,9 @@
       "weighted_f1": 0.6300876414026555,
       "selected_features": 44443,
       "feature_reduction_pct": 0.0,
-      "tfidf_refit_seconds": 0.17061969799999588,
-      "svm_fit_seconds": 0.1208125299999665,
-      "test_prediction_seconds": 0.0007397879999757606
+      "tfidf_refit_seconds": 0.3862592040004529,
+      "svm_fit_seconds": 0.2490926539994689,
+      "test_prediction_seconds": 0.0030958480001572752
     },
     {
       "model": "GA-selected Linear SVM",
@@ -76,9 +66,12 @@
       "weighted_f1": 0.6130748994294144,
       "selected_features": 31924,
       "feature_reduction_pct": 28.168665481628153,
-      "tfidf_refit_seconds": 0.17061969799999588,
-      "svm_fit_seconds": 0.08842849699999533,
-      "test_prediction_seconds": 0.0009176049999837232
+      "tfidf_refit_seconds": 0.3862592040004529,
+      "svm_fit_seconds": 0.16140355100014858,
+      "test_prediction_seconds": 0.0012168950006525847
     }
-  ]
+  ],
+  "scikit_learn_version": "1.6.1",
+  "numpy_version": "2.4.6",
+  "pandas_version": "2.2.3"
 }
